@@ -1,3 +1,3 @@
-# Python-Test
+# Python Challenge
 
 Instructions included in `problem.py`.
