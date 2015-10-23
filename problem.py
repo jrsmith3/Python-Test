@@ -1,5 +1,5 @@
 
-# Python Test
+# Python Challenge
 
 # You are given a matrix with m rows and n columns of cells, each of which
 # contains either 1 or 0. Two cells are said to be connected if they are
@@ -52,7 +52,7 @@
 
 # The test cases are located in the test-cases directory.
 
-# run-tests.py is not part of your test.  It is simply a convenience program
+# run-tests.py is not part of your challenge.  It is simply a convenience program
 # that will test your code against all the test cases, one after another, and
 # then tell you whether it passed or failed, and what the expected and actual
 # outputs are.  You may review and modify run-tests.py as much as you want, but
@@ -64,7 +64,7 @@
 # they do not come with an expected output.  You may generate test
 # cases of various dimensions using generate-test-case.py, but the
 # ability of your algorithm to solve extra test cases you've created
-# will not be considered in our evaluation of this test.  Your
+# will not be considered in our evaluation of this challenge.  Your
 # algorithm should be able to find a correct solution in a timely
 # manner up to the 1000x1000 grid. If you work out an algorithm that
 # can solve the 1000x1000 grid, but it takes more than 10 seconds to
@@ -72,7 +72,7 @@
 # us your finished product.  All other test cases should take your
 # algorithm no more than 3 seconds.
 
-# Finally, you may not use third party libraries to complete this test.  You
+# Finally, you may not use third party libraries to complete this challenge.  You
 # may only use the libraries available on a fresh Python 2.7 install.  I doubt
 # you will need to use any libraries at all as this is just an algorithmic
 # challenge.
