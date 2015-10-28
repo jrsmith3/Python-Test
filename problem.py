@@ -1,78 +1,271 @@
+# -*- coding: utf-8 -*-
+"""
+`main.py`: Solution to Idea Evolver's python challenge
+======================================================
 
-# Python Challenge
+This file contains all of the code needed to address the python
+challenge. All code is stored in this single file for the sake of
+simplicity. The functions can be split into two categories: library
+functions and  command-line interface functions. These categories are
+noted in the source.
 
-# You are given a matrix with m rows and n columns of cells, each of which
-# contains either 1 or 0. Two cells are said to be connected if they are
-# adjacent to each other horizontally, vertically, or diagonally. The connected
-# and filled (i.e. cells that contain a 1) cells form a region. There may be
-# several regions in the matrix. Find the number of cells in the largest region
-# in the matrix.
+Usage
+-----
+From the command-line, execute `main.py` and follow the prompts.
 
-# Input Format 
-# There will be three parts of the input:
-# The first line will contain m, the number of rows in the matrix.
-# The second line will contain n, the number of columns in the matrix.
-# This will be followed by the matrix grid: the list of numbers that make up the matrix.
+```
+$ python main.py
+```
 
-# Output Format 
-# Print the length of the largest region in the given matrix.
 
-# Constraints
-# 0<m<10
-# 0<n<10
+Tests
+-----
+Tests for the functions in this module can be found in the `test`
+directory. Simply run `nosetests` from the root of the project repo.
 
-# Sample Input:
-# 4
-# 4
-# 1 1 0 0
-# 0 1 1 0
-# 0 0 1 0
-# 1 0 0 0
 
-# Sample Output:
-# 5
+License
+-------
+The MIT License (MIT)
 
-# Explanation
-# X X 0 0
-# 0 X X 0
-# 0 0 X 0
-# 1 0 0 0
-# The X characters indicate the largest connected component, as per the given
-# definition. There are five cells in this component.
+Copyright (c) 2015 Joshua Ryan Smith
 
-# Task: 
-# Write the complete program to find the number of cells in the largest region.
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
 
-# You will need to read from stdin for the input and write to stdout for the output
-# If you are unfamiliar with what that means:
-# raw_input is a function that reads from stdin
-# print statements write to stdout
-# You are not required to use raw_input or print statements, but it is the
-# simplest and most common way to read and write to stdin/out
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
 
-# The test cases are located in the test-cases directory.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+"""
+# =====================
+# Library functionality
+# =====================
+def unit_elements(matrix):
+    """
+    Return list of indices of unit elements of matrix
 
-# run-tests.py is not part of your challenge.  It is simply a convenience program
-# that will test your code against all the test cases, one after another, and
-# then tell you whether it passed or failed, and what the expected and actual
-# outputs are.  You may review and modify run-tests.py as much as you want, but
-# it will not score or lose you any points
+    Note that the order of the elements in the returned list 
+    should be considered to be arbitrary.
+    """
+    unit_elems = []
+    for row_indx, row in enumerate(matrix):
+        for col_indx, elem in enumerate(row):
+            if elem:
+                unit_elems.append((row_indx, col_indx))
 
-# Included in the top level directory are four "hard" test cases that
-# are square grids of side lengths 10, 25, 50, 100, and 1000 cells.
-# These were randomly generated using generate-hard-test-case.py, and
-# they do not come with an expected output.  You may generate test
-# cases of various dimensions using generate-test-case.py, but the
-# ability of your algorithm to solve extra test cases you've created
-# will not be considered in our evaluation of this challenge.  Your
-# algorithm should be able to find a correct solution in a timely
-# manner up to the 1000x1000 grid. If you work out an algorithm that
-# can solve the 1000x1000 grid, but it takes more than 10 seconds to
-# do so, please note that in a comment and let us know when you e-mail
-# us your finished product.  All other test cases should take your
-# algorithm no more than 3 seconds.
+    return unit_elems
 
-# Finally, you may not use third party libraries to complete this challenge.  You
-# may only use the libraries available on a fresh Python 2.7 install.  I doubt
-# you will need to use any libraries at all as this is just an algorithmic
-# challenge.
+
+def neighbors(element, matrix):
+    """
+    Return list of given matrix element's neighbors
+
+    This method gives a simple list of all the element's neighbors.
+    It *does not* check the values of those neighbors, but it does
+    account for the edge of the matrix.
+
+    element : 2-tuple
+        (row, column)
+    """
+    row_min = max(element[0] - 1, 0)
+    row_max = min(element[0] + 2, len(matrix))
+
+    col_min = max(element[1] - 1, 0)
+    col_max = min(element[1] + 2, len(matrix[0]))
+
+    row_indices = range(row_min, row_max)
+    col_indices = range(col_min, col_max)
+
+    nbors = [(row_index, col_index) for row_index in row_indices for col_index in col_indices]
+    nbors.remove(element)
+
+    return nbors
+
+
+def unit_neighbors(element, matrix):
+    """
+    Return list of given matrix element's nonzero neighbors
+    """
+    nbors = neighbors(element, matrix)
+
+    unit_nbors = [(row, col) for row, col in nbors if matrix[row][col]]
+
+    return unit_nbors
+
+
+def map_to_graph(matrix):
+    """
+    Map matrix data structure to dict representing graph
+    """
+    graph = {element: unit_neighbors(element, matrix) for element in unit_elements(matrix)}
+
+    return graph
+
+
+def find_areas(matrix):
+    """
+    Return a list of lists of points comprising an area
+    """
+    graph = map_to_graph(matrix)
+
+    areas = []
+    while graph:
+        area = set()
+
+        node, neighbor_nodes = graph.popitem()        
+        area.add(node)
+
+        while neighbor_nodes:
+            next_neighbor_nodes = set()
+
+            for neighbor_node in neighbor_nodes:
+                nodes = graph.pop(neighbor_node)
+                next_neighbor_nodes.update(nodes)
+
+            area.update(neighbor_nodes)
+
+            neighbor_nodes = next_neighbor_nodes.difference(area)
+
+        areas.append(list(area))
+
+    return areas
+
+
+def max_area_size(matrix):
+    """
+    Return the area of maximum size
+    """
+    areas = find_areas(matrix)
+    sizes = [len(area) for area in areas]
+    return max(sizes)
+
+
+# ==========================
+# Command-line functionality
+# ==========================
+def cli():
+    """
+    Command-line interface
+    """
+    # print "Please input the matrix rows when prompted."
+    # print "The elements of each row should be separated by whitespace"
+    # print "and contain only 0 or 1.\n"
+
+    num_rows = prompt_dimension_size("row")
+    num_cols = prompt_dimension_size("column")
+    matrix = prompt_matrix(num_rows, num_cols)
+
+    return matrix
+
+
+def prompt_dimension_size(dimension="row"):
+    """
+    Prompt for the size of matrix dimension and handle bad input
+
+    dimension : str
+        Dimension of matrix (either 'row' or 'column')
+    """
+    prompt = "Input number of {}s: "
+    while 1:
+        # raw_dim_size = raw_input(prompt.format(dimension))
+        raw_dim_size = raw_input()
+        try:
+            dim_size = int(raw_dim_size)
+        except:
+            print "Please input integer value."
+        else:
+            break
+
+    return dim_size
+
+
+def prompt_row(num_row, num_cols):
+    """
+    Prompt for a matrix row and handle bad input
+
+    num_row : int
+        Index of current row (using python indexing convention)
+    num_cols : int
+        Number of columns in the matrix.
+    """
+    prompt = "Input matrix row {}: "
+    while 1:
+        # raw_row = raw_input(prompt.format(num_row + 1))
+        raw_row = raw_input()
+        try:
+            row = rowify(raw_row, num_cols)
+        except ValueError:
+            print "Elements can only be 0 or 1; please retry."
+        except IndexError:
+            print "Please enter the proper number of columns."
+        else:
+            break
+
+    return row
+
+
+def rowify(raw_row, num_cols):
+    """
+    Convert user row input to actual row
+
+    Arguments
+    ---------
+    raw_row : str
+        Row taken from prompt
+    num_cols : int
+        Number of columns in matrix
+
+    Returns
+    -------
+    row : list
+    """
+    strip_row = raw_row.strip()
+    split_row = strip_row.split()
+    # Attempt to convert everything to ints; will raise ValueError
+    # otherwise and trigger re-prompt.
+    ints_row = [int(element) for element in split_row]
+
+    # Check if data is 0 or 1, raise ValueError if not and trigger
+    # re-prompt.
+    for element in ints_row:
+        if element not in [0, 1]:
+            raise ValueError("Matrix elements must be only 0 or 1.")
+
+    if len(split_row) != num_cols:
+        # Abuse of IndexError, but I don't want to write my own exception.
+        raise IndexError()
+
+    return ints_row
+
+
+def prompt_matrix(num_rows, num_cols):
+    """
+    Prompt for the matrix and handle bad input
+
+    num_rows : int
+        Number of rows in matrix
+    num_cols : int
+        Number of columns in matrix
+    """
+    matrix = []
+    for num_row in range(num_rows):
+        row = prompt_row(num_row, num_cols)
+        matrix.append(row)
+
+    return matrix
+
+if __name__ == "__main__":
+    matrix = cli()
+    print max_area_size(matrix)    
